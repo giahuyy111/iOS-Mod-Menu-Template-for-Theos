@@ -1,21 +1,21 @@
-name: iOS Build Build
+name: iOS Build
 on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-12
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          submodules: recursive
 
       - name: Setup Theos
         run: |
+          sudo xcode-select -s /Applications/Xcode_13.4.1.app
+          export THEOS=~/theos
           bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
-          echo "THEOS=~/theos" >> $GITHUB_ENV
+          curl -ksL https://github.com/theos/sdks/raw/master/iPhoneOS14.5.sdk.tar.xz | tar -xf - -C $THEOS/sdks
 
-      - name: Build Dylib
+      - name: Build
         run: |
           export THEOS=~/theos
           make package FINALPACKAGE=1
@@ -23,5 +23,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: MyModMenu
-          path: packages/*.deb
+          name: ModMenu_IPA_DEB
+          path: |
+            packages/*.deb
+            *.dylib
